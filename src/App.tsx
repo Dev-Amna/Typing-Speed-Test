@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { paragraphs } from "./data/paragraphs";
 import "./App.css";
 
@@ -10,71 +10,89 @@ export default function App() {
     paragraphs.easy[0].text
   );
 
-  const [userInput, setUserInput] = useState("");
+  const [typedChars, setTypedChars] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isActive, setIsActive] = useState(false);
   const [wpm, setWPM] = useState(0);
   const [errors, setErrors] = useState(0);
+  const [isFinished, setIsFinished] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Start typing
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!isActive) setIsActive(true);
-
-    const value = e.target.value;
-    setUserInput(value);
-
-    // Count errors
-    const errorCount = value
-      .split("")
-      .filter((char, idx) => char !== sampleText[idx]).length;
-    setErrors(errorCount);
-  };
-
-  // Timer
-  useEffect(() => {
-    if (!isActive) return;
-    if (timeLeft <= 0) {
-      setIsActive(false);
-      const wordsTyped = userInput.trim().split(/\s+/).length;
-      setWPM(wordsTyped);
-      return;
-    }
-    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [timeLeft, isActive, userInput]);
-
-  // Select difficulty and new paragraph
+  // Pick a new paragraph when changing difficulty
   const selectDifficulty = (level: Difficulty) => {
     setDifficulty(level);
     const randomIndex = Math.floor(Math.random() * paragraphs[level].length);
     setSampleText(paragraphs[level][randomIndex].text);
 
-    setUserInput("");
+    setTypedChars([]);
     setTimeLeft(60);
     setIsActive(false);
     setWPM(0);
     setErrors(0);
-    textareaRef.current?.focus();
+    setIsFinished(false);
   };
 
-  const handleReset = () => {
-    setUserInput("");
-    setTimeLeft(60);
-    setIsActive(false);
-    setWPM(0);
-    setErrors(0);
-    textareaRef.current?.focus();
-  };
+  // Timer
+  useEffect(() => {
+    if (!isActive || timeLeft <= 0) return;
 
-  // Helper: Render colored text
+    const timer = setTimeout(() => {
+      setTimeLeft(timeLeft - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [timeLeft, isActive]);
+
+  // Finish typing when timer ends
+  useEffect(() => {
+    if (timeLeft === 0) {
+      setIsActive(false);
+      setIsFinished(true);
+
+      const textTyped = typedChars.join("");
+      const wordsTyped = textTyped.trim().split(/\s+/).length;
+      setWPM(wordsTyped);
+    }
+  }, [timeLeft, typedChars]);
+
+  // Handle keyboard typing
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (timeLeft === 0) return;
+
+      const key = e.key;
+
+      // Start timer on first key
+      if (!isActive) setIsActive(true);
+
+      // Only accept single character keys
+      if (key.length === 1) {
+        setTypedChars((prev) => [...prev, key]);
+      } else if (key === "Backspace") {
+        setTypedChars((prev) => prev.slice(0, prev.length - 1));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isActive, timeLeft]);
+
+  // Count errors
+  useEffect(() => {
+    const errorCount = typedChars.reduce((acc, char, idx) => {
+      if (char !== sampleText[idx]) return acc + 1;
+      return acc;
+    }, 0);
+    setErrors(errorCount);
+  }, [typedChars, sampleText]);
+
+  // Render colored text
   const renderText = () => {
     return sampleText.split("").map((char, idx) => {
       let color = "";
-      if (userInput[idx] == null) {
+      if (typedChars[idx] == null) {
         color = "";
-      } else if (userInput[idx] === char) {
+      } else if (typedChars[idx] === char) {
         color = "green";
       } else {
         color = "red";
@@ -85,6 +103,16 @@ export default function App() {
         </span>
       );
     });
+  };
+
+  // Reset test
+  const handleReset = () => {
+    setTypedChars([]);
+    setTimeLeft(60);
+    setIsActive(false);
+    setWPM(0);
+    setErrors(0);
+    setIsFinished(false);
   };
 
   return (
@@ -99,19 +127,18 @@ export default function App() {
 
       <div className="sample-text">{renderText()}</div>
 
-      <textarea
-        ref={textareaRef}
-        value={userInput}
-        onChange={handleChange}
-        placeholder="Start typing..."
-        disabled={timeLeft === 0}
-      />
-
       <div className="stats">
         <p>Time Left: {timeLeft}s</p>
         <p>Errors: {errors}</p>
-        <p>WPM: {wpm}</p>
       </div>
+
+      {isFinished && (
+        <div className="result">
+          <h2>Results</h2>
+          <p>Words Per Minute (WPM): {wpm}</p>
+          <p>Total Errors: {errors}</p>
+        </div>
+      )}
 
       <button onClick={handleReset}>Reset</button>
     </div>
