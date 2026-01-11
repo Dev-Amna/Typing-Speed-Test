@@ -6,10 +6,7 @@ type Difficulty = "easy" | "medium" | "hard";
 
 export default function App() {
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
-  const [sampleText, setSampleText] = useState(
-    paragraphs.easy[0].text
-  );
-
+  const [sampleText, setSampleText] = useState(paragraphs.easy[0].text);
   const [typedChars, setTypedChars] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(60);
   const [isActive, setIsActive] = useState(false);
@@ -17,12 +14,11 @@ export default function App() {
   const [errors, setErrors] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
 
-  // Pick a new paragraph when changing difficulty
+  // Select paragraph
   const selectDifficulty = (level: Difficulty) => {
     setDifficulty(level);
     const randomIndex = Math.floor(Math.random() * paragraphs[level].length);
     setSampleText(paragraphs[level][randomIndex].text);
-
     setTypedChars([]);
     setTimeLeft(60);
     setIsActive(false);
@@ -34,46 +30,35 @@ export default function App() {
   // Timer
   useEffect(() => {
     if (!isActive || timeLeft <= 0) return;
-
-    const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
-    }, 1000);
-
+    const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     return () => clearTimeout(timer);
-  }, [timeLeft, isActive]);
+  }, [isActive, timeLeft]);
 
-  // Finish typing when timer ends
+  // Finish test
   useEffect(() => {
     if (timeLeft === 0) {
       setIsActive(false);
       setIsFinished(true);
-
       const textTyped = typedChars.join("");
       const wordsTyped = textTyped.trim().split(/\s+/).length;
       setWPM(wordsTyped);
     }
   }, [timeLeft, typedChars]);
 
-  // Handle keyboard typing
+  // Handle keyboard
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (timeLeft === 0) return;
-
       const key = e.key;
-
-      // Start timer on first key
       if (!isActive) setIsActive(true);
 
-      // Only accept single character keys
       if (key.length === 1) {
         setTypedChars((prev) => [...prev, key]);
       } else if (key === "Backspace") {
         setTypedChars((prev) => prev.slice(0, prev.length - 1));
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isActive, timeLeft]);
 
@@ -90,13 +75,9 @@ export default function App() {
   const renderText = () => {
     return sampleText.split("").map((char, idx) => {
       let color = "";
-      if (typedChars[idx] == null) {
-        color = "";
-      } else if (typedChars[idx] === char) {
-        color = "green";
-      } else {
-        color = "red";
-      }
+      if (typedChars[idx] == null) color = "";
+      else if (typedChars[idx] === char) color = "green";
+      else color = "red";
       return (
         <span key={idx} style={{ color }}>
           {char}
@@ -105,7 +86,6 @@ export default function App() {
     });
   };
 
-  // Reset test
   const handleReset = () => {
     setTypedChars([]);
     setTimeLeft(60);

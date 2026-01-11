@@ -1,54 +1,137 @@
+/* Responsive App.css */
+
+:root {
+  --primary: #6366f1;
+  --success: #22c55e;
+  --error: #ef4444;
+  --bg-dark: #0f172a;
+  --glass: rgba(255, 255, 255, 0.05);
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: #f8fafc;
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px; /* Prevents container from touching screen edges */
+}
+
 .container {
-  max-width: 700px;
-  margin: 20px auto;
-  padding: 10px;
+  width: 100%;
+  max-width: 800px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2rem;
   text-align: center;
-  font-family: sans-serif;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  animation: fadeIn 0.5s ease;
+}
+
+h1 {
+  font-size: clamp(1.5rem, 5vw, 2.5rem); /* Fluid font size */
+  margin-bottom: 1.5rem;
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Responsive Button Grid */
+.difficulty-buttons {
+  display: flex;
+  flex-wrap: wrap; /* Allows buttons to stack on small screens */
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 2rem;
 }
 
 .difficulty-buttons button {
-  margin: 5px;
-  padding: 8px 12px;
-  font-size: 14px;
+  flex: 1; /* Buttons grow to fill space */
+  min-width: 100px; /* But don't get too small */
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.05);
+  color: white;
   cursor: pointer;
+  transition: 0.3s;
 }
 
+/* The Typing Area */
 .sample-text {
-  margin: 20px 0;
-  padding: 10px;
-  font-size: 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1rem, 4vw, 1.4rem); /* Adjusts text size based on screen width */
   line-height: 1.6;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  min-height: 120px;
   text-align: left;
-  word-wrap: break-word;
+  background: rgba(0,0,0,0.3);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  word-wrap: break-word; /* Critical for mobile responsiveness */
+  max-height: 300px;
+  overflow-y: auto; /* Adds scroll if text is too long */
 }
 
+/* Stats Layout */
 .stats {
   display: flex;
   justify-content: space-around;
-  flex-wrap: wrap;
-  margin-bottom: 15px;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 1.5rem;
 }
 
+.stats p {
+  background: var(--glass);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Result Section */
 .result {
-  margin: 20px 0;
-  font-size: 18px;
-  color: #333;
+  background: rgba(99, 102, 241, 0.1);
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin: 1rem 0;
+  border: 1px dashed var(--primary);
 }
 
-button {
-  padding: 8px 15px;
-  margin-top: 5px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-/* Responsive */
-@media (max-width: 500px) {
-  .sample-text {
-    font-size: 16px;
-    min-height: 100px;
+/* Mobile Specific Adjustments */
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
   }
+
+  .stats {
+    flex-direction: column; /* Stack time and errors vertically on tiny screens */
+    gap: 8px;
+  }
+
+  .difficulty-buttons button {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+button:active {
+  transform: scale(0.95);
 }
